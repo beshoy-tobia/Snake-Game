@@ -1,5 +1,48 @@
 TITLE Snake.asm
+
 INCLUDE Irvine32.inc
+
+.DATA
+
+a WORD 1920 DUP(0)  ; Framebuffer (24x80)
+
+tR BYTE 16d         ; Snake tail row number
+tC BYTE 47d         ; Snake tail column number
+hR BYTE 13d         ; Snake head row number
+hC BYTE 47d         ; Snake head column number
+fR BYTE 0           ; Food row
+fC BYTE 0           ; Food column
+
+tmpR BYTE 0         ; Temporary variable for storing row indexes
+tmpC BYTE 0         ; Temporary variable for storing column indexes
+
+rM BYTE 0d          ; Index of row above current row (row minus)
+cM BYTE 0d          ; Index of column left of current column (column minus)
+rP BYTE 0d          ; Index of row below current row (row plus)
+cP BYTE 0d          ; Index of column right of current column (column plus)
+
+eTail   BYTE    1d  ; Flag for indicating if tail should be deleted or not
+search  WORD    0d  ; Variable for storing value of next snake segment
+eGame   BYTE    0d  ; Flag for indicating that game should be ended (collision)
+cScore  DWORD   0d  ; Total score
+
+d       BYTE    'w' ; Variable for holding the current direction of the snake
+newD    BYTE    'w' ; Variable for holding the new direction specified by input
+delTime DWORD   100 ; Delay time between frames (game speed)
+
+; Strings for menu display
+menuS   BYTE "1. Start Game", 0Dh, 0Ah,"2. Select Speed", 0Dh, 0Ah,
+             "3. Select Level", 0Dh, 0Ah, "4. Exit",0Dh, 0Ah, 0
+levelS  BYTE "1. None", 0Dh, 0Ah, "2. Box", 0Dh, 0Ah, "3. Rooms", 0Dh, 0Ah, 0
+speedS  BYTE "1. Earthworm", 0Dh, 0Ah, "2. Centipede", 0Dh, 0Ah, "3. Cobra",
+             0Dh, 0Ah, "4. Black Mamba", 0Dh, 0Ah, 0
+hitS    BYTE "Game Over!", 0
+scoreS  BYTE "Score: 0", 0
+
+myHandle DWORD ?    ; Variable for holding the terminal input handle
+numInp   DWORD ?    ; Variable for holding number of bytes in input buffer
+temp BYTE 16 DUP(?) ; Variable for holding data of type INPUT_RECORD
+bRead    DWORD ?    ; Variable for holding number of read input bytes
 
 .CODE
 
@@ -827,4 +870,4 @@ GenLevel PROC
 
 GenLevel ENDP
 
-END main
+END main 
