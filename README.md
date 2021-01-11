@@ -27,7 +27,6 @@ snake.asm contains the code for the game. It is dependent on Irvine32.inc which 
 why we use Irvine library ?
 ---------------------------
 Usually one wants to use it to avoid writing the code providing that functionality himself. As the assembly code replicating some of the functionality may be tens or hundreds of lines of code (or even thousands for very complex functions), and having it to write every time may be cumbersome.
-
 Also the API provided by Irvine32 functions is often simpler to use than similar API provided by OS services, so it may be often somewhat simpler to use Irvine32 instead of calling the OS services directly.
 Procdures used in this code
 ---------------------------
