@@ -558,3 +558,67 @@ PUSH EBX        ; Save EBX on stack
 
 saveIndex ENDP
 
+Paint PROC USES EAX EDX EBX ESI
+MOV EAX, blue + (white * 16)    ; Set text color to blue on white
+    CALL SetTextColor
+
+    MOV DH, 0                       ; Set row number to 0
+
+    loop1:                          ; Loop for indexing of the rows
+        CMP DH, 24                  ; Check if the indexing has arrived
+        JGE endLoop1                ; at the bottom of the screen
+
+        MOV DL, 0                   ; Set column number to 0
+
+        loop2:                      ; Loop for indexing of the columns
+            CMP DL, 80              ; Check if the indexing has arrived
+            JGE endLoop2            ; at the right side of the screen
+            CALL GOTOXY             ; Set cursor to current pixel position
+
+            MOV BL, DH              ; Generate the framebuffer address from
+            MOV AL, 80              ; the row value stored in DH
+            MUL BL
+            PUSH DX                 ; Save DX on stack
+            MOV DH, 0               ; Clear upper bite of DX
+            ADD AX, DX              ; Add offset to row address (column adress)
+            POP DX                  ; Restore old value of DX
+            MOV ESI, 0              ; Clear indexing register
+            MOV SI, AX              ; Move pixel address into indexing register
+            SHL SI, 1               ; Multiply indexing address by 2, since
+                                    ; we're using elements of type WORD in the
+                                    ; framebuffer
+            MOV BX, a[SI]           ; Get the pixel
+
+            CMP BX, 0               ; Check if pixel is empty space,
+            JE NoPrint              ; and don't print it if is
+
+            CMP BX, 0FFFFh          ; Check if pixel is part of a wall
+            JE printHurdle          ; Jump to segment for printing walls
+
+            MOV AL, ' '             ; Pixel is part of the snake, so print
+            CALL WriteChar          ; whitespace
+            JMP noPrint             ; Jump to end of loop
+
+            PrintHurdle:            ; Segment for printing the walls
+            MOV EAX, blue + (gray * 16) ; Change the text color to blue on gray
+            CALL SetTextColor
+
+            MOV AL, ' '             ; Print whitespace
+            CALL WriteChar
+
+            MOV EAX, blue + (white * 16)    ; Change the text color back to
+            CALL SetTextColor               ; blue on white
+
+            NoPrint:
+            INC DL                  ; Increment the column number
+            JMP loop2               ; Continue column indexing
+
+    endLoop2:                       ; End of column loop
+        INC DH                      ; Increment the row number
+        JMP loop1                   ; Continue row indexing
+
+endLoop1:                           ; End of row loop
+
+RET
+
+Paint ENDP
