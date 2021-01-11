@@ -519,3 +519,42 @@ redo:                       ; Loop for food position generation
     RET
 
 createFood ENDP
+
+accessIndex PROC USES EAX ESI EDX
+MOV BL, DH      ; Copy row index into BL
+    MOV AL, 80      ; Copy multiplication constant for row number
+    MUL BL          ; Mulitply row index by 80 to get framebuffer segment
+    PUSH DX         ; Push DX onto stack
+    MOV DH, 0       ; Clear upper byte of DX to get only column index
+    ADD AX, DX      ; Add column offset to row segment to get pixel address
+    POP DX          ; Pop DX off of stack
+    MOV ESI, 0      ; Clear indexing register
+    MOV SI, AX      ; Copy generated address into indexing register
+    SHL SI, 1       ; Multiply address by 2 since the elements are of type WORD
+
+    MOV BX, a[SI]   ; Copy framebuffer content into BX register
+
+    RET
+
+accessIndex ENDP
+
+saveIndex PROC USES EAX ESI EDX
+PUSH EBX        ; Save EBX on stack
+    MOV BL, DH      ; Copy row number to BL
+    MOV AL, 80      ; Copy multiplication constant for row number
+    MUL BL          ; Multiply row index by 80 to get framebuffer segment
+    PUSH DX         ; Push DX onto stack
+    MOV DH, 0       ; Clear DH register, to access the column number
+    ADD AX, DX      ; Add column offset to get the array index
+    POP DX          ; Pop old address off of stack
+    MOV ESI, 0      ; Clear indexing register
+    MOV SI, AX      ; Move generated address into ESI register
+    POP EBX         ; Pop EBX off of stack
+    SHL SI, 1       ; Multiply address by two, because elements
+                    ; are of type WORD
+    MOV a[SI], BX   ; Save BX into array
+
+    RET
+
+saveIndex ENDP
+
