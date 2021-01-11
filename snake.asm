@@ -33,7 +33,8 @@ initSnake ENDP
 clearMem PROC
 
 ; This procedure clears the framebuffer, resets the snake position and length,
-; and sets all the game related flags back to their default value.
+; and sets all the game related flags back to their default value, written by
+; mario hany
 
     MOV DH, 0               ; Set the row register to zero
     MOV BX, 0               ; Set the data register to zero
@@ -622,3 +623,89 @@ endLoop1:                           ; End of row loop
 RET
 
 Paint ENDP
+
+GenLevel PROC
+
+; This procedure takes care of generating the level obstacles. There are three
+; levels; a no obstacle level, a box level, and a level with four rooms. The
+; level choice gets passed through the AL register (can be 1 to 3). Default
+; level choice is without obstacles.
+; Obstacles get written into the framebuffer, as 0FFFFh values.
+; written by mario hany
+
+    CMP AL, 1               ; Check if level choice is without obstacles
+    JNE nextL               ; If not, jump to next level selection
+
+    RET                     ; Exit procedure, don't generate any obstacles.
+
+    nextL:                  ; Check if level choic is box level
+    CMP AL, 2
+    JNE nextL2              ; If not, jump to next level selection
+
+    MOV DH, 0               ; Set row index to 0
+    MOV BX, 0FFFFh          ; Set data to be written to framebuffer
+
+    rLoop:                  ; Loop for generating vertical lines
+        CMP DH, 24          ; Check if loop has reached bottom of screen
+        JE endRLoop         ; Break loop if bottom of screen is reched
+
+        MOV DL, 0           ; Set column index to 0 (left side of screen)
+        CALL saveIndex      ; Write value stored in BX to framebuffer
+        MOV DL, 79          ; Set column index to 79 (right side of screen)
+        CALL saveIndex      ; Write value stored in BX to framebuffer
+        INC DH              ; Increment row value
+        JMP rLoop           ; Continue loop
+    endRLoop:
+
+    MOV DL, 0               ; Set column index to 0
+
+    cLoop:                  ; Loop for generating horizontal lines
+        CMP DL, 80          ; Check if loop has reached right side of screen
+        JE endCLoop         ; Break loop if right side of screen is reached
+
+        MOV DH, 0           ; Set row index to 0 (top of screen)
+        CALL saveIndex      ; Write value stored in BX to framebuffer
+        MOV DH, 23          ; Set row index to 23 (bottom of screen)
+        CALL saveIndex      ; Write value stored in BX to framebuffer
+        INC DL              ; Increment column value
+        JMP cLoop           ; Continue loop
+
+        endCLoop:
+
+    RET
+
+    nextL2:                 ; Section for generating rooms level
+
+        MOV newD, 'd'       ; Set the default direction to down, as not to run
+        MOV DH, 11          ; immediately into a wall
+        MOV DL, 0           ; Set row and column numbers to 11 and 0
+        MOV BX, 0FFFFh      ; Set value for writing into framebuffer
+
+        cLoop2:             ; Loop for painting a horizontal line in the middle
+                            ; of the screen (row 11)
+            CMP DL, 80      ; Check if right side of screen was reached
+            JE endCLoop2
+
+            CALL saveIndex  ; Write obstacle value to framebuffer
+            INC DL          ; Increment column number
+            JMP cLoop2      ; Continue until right side of screen is reached
+
+        endCloop2:          ; Prepare for vertical line painting
+        MOV DH, 0           ; Start from top of screen
+        MOV DL, 39          ; Vertical line will be at row 39
+
+        rLoop2:             ; Loop for patining a vertical line in the middle
+            CMP DH, 24      ; of the screen (column 39)
+            JE endRLoop2
+
+            CALL saveIndex  ; Write obstacle value to framebuffer
+            INC DH          ; Increment row number
+            JMP rLoop2      ; Continue until bottom of screen is reached
+
+        endRLoop2:          ; Return from procedure after painting both lines
+
+    RET
+
+GenLevel ENDP
+
+END main
