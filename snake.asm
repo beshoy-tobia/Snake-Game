@@ -491,3 +491,31 @@ MoveSnake PROC USES EBX EDX
     RET                     ; Exit procedure
 
 MoveSnake ENDP
+
+createFood PROC USES EAX EBX EDX
+redo:                       ; Loop for food position generation
+    MOV EAX, 24                 ; Generate a radnom integer in the
+    CALL RandomRange            ; range 0 to numRows - 1
+    MOV DH, AL
+
+    MOV EAX, 80                 ; Generate a radnom integer in the
+    CALL RandomRange            ; range 0 to numCol - 1
+    MOV DL, AL
+
+    CALL accessIndex            ; Get content of generated location
+
+    CMP BX, 0                   ; Check if content is empty space
+    JNE redo                    ; Loop until location is empty space
+
+    MOV fR, DH                  ; Set food row value
+    MOV fC, DL                  ; Set food column value
+
+    MOV EAX, white + (cyan * 16); Set text color to white on cyan
+    CALL setTextColor
+    CALL GotoXY                 ; Move cursor to generated position
+    MOV AL, ' '                 ; Write whitespace to terminal
+    CALL WriteChar
+
+    RET
+
+createFood ENDP
