@@ -1,6 +1,125 @@
 TITLE Snake.asm
 INCLUDE Irvine32.inc
 
+.CODE
+
+main PROC
+
+; The main procedure handles printing menus to the user, configuring the game
+; and then starting the game.
+
+    menu:
+    CALL Randomize              ; Set seed for food generation
+    CALL Clrscr                 ; Clear terminal screen
+    MOV EDX, OFFSET menuS       ; Copy pointer to menu string into EDX
+    CALL WriteString            ; Write menu string to terminal
+
+    wait1:                      ; Loop for reading menu choices
+    CALL ReadChar
+
+    CMP AL, '1'                 ; Check if start game was selected
+    JE startG
+
+    CMP AL, '2'                 ; Check if speed settig was selected
+    JE speed
+
+    CMP AL, '3'                 ; Check if level choice was selected
+    JE level
+
+    CMP AL, '4'                 ; If any other character was read,
+    JNE wait1                   ; continue loop until a valid character
+                                ; has been given, else exit program
+    EXIT
+
+    level:                      ; Level chooser section
+    CALL Clrscr                 ; Clear terminal screen
+    MOV EDX, OFFSET levelS      ; Copy pointer to level menu string into EDX
+    CALL WriteString            ; Write level menu string to screen
+
+    wait2:                      ; Wait for valid input for level choice
+    CALL ReadChar
+
+    CMP AL, '1'                 ; No obsacles level
+    JE level1
+
+    CMP AL, '2'                 ; Box level
+    JE level2
+
+    CMP AL, '3'                 ; Rooms level
+    JE level3
+
+    JMP wait2                   ; Invalid choice, continue loop
+
+    level1:                     ; No obstacles level
+    CALL clearMem               ; Clear framebuffer and reset all game flags
+    MOV AL, 1                   ; Set flag for level generation in AL and jump
+    CALL GenLevel               ; to level generation section of program
+    JMP menu
+
+    level2:                     ; Box obstacle level
+    CALL clearMem               ; Clear framebuffer and reset all game flags
+    MOV AL, 2                   ; Set flag for level generation in AL and jump
+    CALL GenLevel               ; to level generation section of program
+    JMP menu
+
+    level3:                     ; Rooms obstacle level
+    CALL clearMem               ; Clear framebuffer and reset all game flags
+    MOV AL, 3                   ; Set flag for level generation in AL and jump
+    CALL GenLevel               ; to level generation section of program
+    JMP menu
+
+    speed:                      ; This section of code selects the game speed
+    CALL Clrscr                 ; Clear terminal screen
+    MOV EDX, OFFSET speedS      ; Copy pointer to speed menu into EDX
+    CALL WriteString            ; Write speed menu string to screen
+
+    wait3:                      ; Wait for valid input for speed choice
+    CALL ReadChar
+
+    CMP AL, '1'                 ; Slow speed
+    JE speed1
+
+    CMP AL, '2'                 ; Normal speed
+    JE speed2
+
+    CMP AL, '3'                 ; Fast speed
+    JE speed3
+
+    CMP AL, '4'                 ; Invalid choice, continue loop
+    JE speed4
+    JMP wait3
+
+    speed1:                     ; Set refresh rate of game to 150ms
+    MOV delTime, 150
+    JMP menu
+
+    speed2:                     ; Set refresh rate of game to 100ms
+    MOV delTime, 100
+    JMP menu
+
+    speed3:
+    MOV delTime, 50             ; Set refresh rate of game to 50ms
+    JMP menu
+
+    speed4:
+    MOV delTime, 35             ; Set refresh rate of game to 35ms
+    JMP menu                    ; Go back to main menu
+
+    startG:                     ; This section sets  the necessary flags
+                                ; and calls the main infinite loop
+    MOV EAX, 0                  ; Clear registers
+    MOV EDX, 0
+    CALL Clrscr                 ; Clear terminal screen
+    CALL initSnake              ; Initialize snake position
+    CALL Paint                  ; Paint level to terminal screen
+    CALL createFood             ; Create snake food location, print to screen
+    CALL startGame              ; Call main infinite loop
+    MOV EAX, white + (black * 16)
+    CALL SetTextColor           ; Gave was exited, reset screen color
+    JMP menu                    ; and jump back to main menu
+
+main ENDP
+
 initSnake PROC USES EBX EDX
 
 ; This procedure initializes the snake to the default position
